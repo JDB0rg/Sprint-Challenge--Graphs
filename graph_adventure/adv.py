@@ -19,26 +19,99 @@ world.loadGraph(roomGraph)
 world.printRooms()
 player = Player("Name", world.startingRoom)
 
-
 # FILL THIS IN
-traversalPath = ['n', 's']
+traversalPath = []
+visited = {}
+
+class Stack:
+    def __init__(self):
+        self.storage = []
+        self.size = 0
+
+    def push(self, value):
+        self.size += 1
+        self.storage.append(value)
+
+    def pop(self):
+        if len(self.storage) > 0:
+            self.size -= 1
+            return self.storage.pop()
+        else:
+            return None
+    
+    def length(self):
+        return self.size
+
+class Queue:
+    def __init__(self):
+        self.storage = []
+        self.size = 0
+
+    def enqueue(self, value):
+        self.size += 1
+        self.storage.append(value)
+    
+    def dequeue(self):
+        if len(self.storage) > 0:
+            self.size -= 1
+            return self.storage.pop(0)
+        else:
+            return None
+    
+    def length(self):
+        return self.size
+
+visited[player.currentRoom.id] = player.currentRoom.getExits()
+
+def reverse_path(direction):
+
+    if direction == 'e':
+        return 'w'
+
+    if direction == 'w':
+        return 'e'
+
+    if direction == 's':
+        return 'n'
+
+    if direction == 'n':
+        return 's'
+
+queue = Queue()
+stack = Stack()
+reversePath = []
+
+while len(visited) < len(roomGraph)-1:
+
+    # add rooms to visited if not we have not been there
+    if player.currentRoom.id not in visited:
+        # get the current id and availble exits
+        visited[player.currentRoom.id] = player.currentRoom.getExits()
+        visited[player.currentRoom.id].remove(reversePath[-1])
+
+    # if we hit a dead end we use reversal path to go back to find another room
+    while len(visited[player.currentRoom.id]) == 0:
+        reversed = reversePath.pop()
+        # update reverse path rooms to total rooms traversed
+        traversalPath.append(reversed)
+        player.travel(reversed)
+
+    move = visited[player.currentRoom.id].pop(0)
+    traversalPath.append(move)
+
+    reversePath.append(reverse_path(move))
+    player.travel(move)
 
 
-# TRAVERSAL TEST
 visited_rooms = set()
 player.currentRoom = world.startingRoom
 visited_rooms.add(player.currentRoom)
-for move in traversalPath:
-    player.travel(move)
+
+for moves in traversalPath:
+    player.travel(moves)
     visited_rooms.add(player.currentRoom)
 
-if len(visited_rooms) == len(roomGraph):
-    print(f"TESTS PASSED: {len(traversalPath)} moves, {len(visited_rooms)} rooms visited")
-else:
-    print("TESTS FAILED: INCOMPLETE TRAVERSAL")
-    print(f"{len(roomGraph) - len(visited_rooms)} unvisited rooms")
-
-
+print(f"{len(traversalPath)} moves, {len(visited_rooms)} rooms visited")
 
 #######
 # UNCOMMENT TO WALK AROUND
